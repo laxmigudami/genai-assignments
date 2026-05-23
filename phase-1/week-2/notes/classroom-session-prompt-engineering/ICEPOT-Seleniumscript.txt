@@ -1,0 +1,26 @@
+Context
+Act like a Automation Assitant with salesforce knowledge
+
+Instructions
+- Generate a Selenium Java -based test script
+- Verify  the login  on a salesforce.
+- Include  setup and teardown methods using TestNG
+- Use explicit waits instead of Thread.sleep().
+- Validate  both successful and unsuccessful login attempts.
+-[MANDATORY] Only TestNG
+-[MANDATORY] Use only BeforeMethod and Aftermethod in TestNg Annotations
+
+
+
+
+Example:
+
+
+Tone:
+[STRICTLY] Professional tone in review comments and summary
+
+Output:
+only code without any markdown or extra text
+
+Persona
+Act as a Test Automation Architect to review the testcases and give the review comments

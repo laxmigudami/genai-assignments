@@ -1,0 +1,161 @@
+
+Todays Agenda
+*Prompt Engineering with Advanced Prompting techniques*
+
+Knowledge check --Week 1
+Starting with the Prompting
+
+What is a prompt
+
+Query/Input --LLM
+
+write a testcase
+Write a testcase  for service now login page
+
+Best Input --Proper/Good output from LLM
+Garbage in -Garbage out
+
+Generate a Selenium test script. --Weak or Bad prompt
+
+You are a test automation assistant.
+Generate a Selenium C# test script to
+verify login on a Salesforce app.
+Include setup/teardown. Use explicit waits
+
+Generate Functional Testcases for Salesforce Login --Weak Prompt
+
+Better/Strong:
+Generate Functional Testcases for Salesforce Login
+Generate only 10 testcases
+Generate Both Positive and Negative scenarios 
+Output format for the testcase in the excel downloadable format
+
+ID|Description|Preconditions|Priorty|Steps|Expected Result|Actual Result|Status
+
+ICEPOT 
+
+I- Instructions
+C- Context
+E- Example
+P -Persona
+O -Output
+T -Tone
+
+Design Prompt -ICEPOT Framework/Guidelines to design prompt to get the better results from LLM
+
+
+Instructions  --Input /instructions given to LLM
+
+ ---Always starts with action
+ ---Simple,clear and precise
+ ---Conflict
+ ---Add strong Keywords
+
+ Context
+ Assigning the role to LLM and setting up the background
+ application
+
+Act as a Experienced Banking domain Testing expert having core
+banking domain
+
+Multiple roles --Persona
+
+Context
+You are an Experienced Salesforce CRM Tester
+
+Instructions
+
+[STRICT] Generate ONLY Functional Testcases for Salesforce Login
+[MANDATORY] Generate Testcases covering MFA and OTP Login
+[STRICT] Generate only priority P1 ,P2 and P3 which critical and High
+[MANDATORY] Generate only 10 testcases
+[MANDATORY] Generate Both Positive ,Negative and edge scenarios 
+[CRITICAL] DO NOT GENERATE Duplicate testcases
+[HIGHPRIORITY] Stick to the output format
+[MANDATORY] Give the review score for testcases scorelimit is
+10
+
+Example
+
+ID|Description|Preconditions|Priorty|Steps|Expected Result|Actual Result|Status
+SalesForce_LOGIN_001|Verify login with valid username and valid password|User has a valid active Salesforce account|High|1. Open Salesforce login page; 2. Enter valid username; 3. Enter valid password; 4. Click Login|User should be successfully logged in and redirected to Salesforce home page||Not Executed
+
+Persona
+Act as a Salesforce Test Lead to review the testcase and generate score
+
+Output
+Generate the testcases as downloadable excel
+
+Tone
+Generate review comments in a professional tone
+
+Iterative Prompting
+Version 1
+Enhanced version to generate P3 and edge cases
+Version 2
+
+Chain of thoughts (COT)
+
+Context
+Act as a Experienced Core Banking Test Manager
+
+Instruction
+
+Design a Test strategy document for Core Banking fund transfer
+[MANDATORY] Ask me 5 valid multiple choice questions one by one
+[STRICTLY] ONCE AFTER ANSWERING THE FIRST QUESTION Go with next question
+[CRITICAL]Once after answering all questions generate Test strategy document in .docx format
+
+Step by step 
+
+
+
+Context
+
+Act as an Automation Architect to design the framework for RestAssured API Automation with TestNG
+
+Instructions
+[MANDATORY] Ask me 5 multiple chice questions one by one
+[MANDATORY] Once after answering the first question ,proceed with net
+[MANDATORY] Generate Framework Structure FirstAfter completing all teh questions 
+[STRICT] Proceed Step by Step for framework implementation 
+[STRICT] Up on my approval proceed with the next step
+
+
+
+ALL-CAPS = hard constraint
+ 
+“MANDATORY / SHALL / MUST” = non-negotiable rule
+ 
+So the model does not not creativity.
+
+
+ALL-CAPS = hard constraint
+ 
+“MANDATORY / SHALL / MUST” = non-negotiable rule
+
+CAPS:
+MANDATORY
+STRICT
+CRITICAL
+DO NOT
+ONLY
+EXACT
+SINGLE
+FINAL
+
+
+
+
+
+Bad,Better and Best prompts
+ICEPOT --Testleaf Golden Framework for prompting
+Advance Prompting techniques
+
+
+https://platform.openai.com/tokenizer
+
+
+
+
+

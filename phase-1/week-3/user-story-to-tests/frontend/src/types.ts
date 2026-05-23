@@ -20,3 +20,28 @@ export interface GenerateResponse {
   promptTokens: number
   completionTokens: number
 }
+
+export interface FeatureFileResponse {
+  content: string
+  model?: string
+  promptTokens: number
+  completionTokens: number
+}
+
+// ── Jira Integration ──────────────────────────────────────────────────────────
+
+export interface JiraCredentials {
+  baseUrl: string
+  email: string
+  apiToken: string
+}
+
+export interface JiraStory {
+  id: string
+  key: string
+  summary: string
+  description: string
+  status: string
+  priority: string
+  assignee: string
+}

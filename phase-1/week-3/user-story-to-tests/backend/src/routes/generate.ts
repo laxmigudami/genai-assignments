@@ -22,7 +22,6 @@ generateRouter.post('/', async (req: express.Request, res: express.Response): Pr
     // Build prompts
     const userPrompt = buildPrompt(request)
 
-    // Create GroqClient instance here to ensure env vars are loaded
     const groqClient = new GroqClient()
 
     // Generate tests using Groq

@@ -57,3 +57,30 @@ ${additionalInfo}
 
   return userPrompt
 }
+
+export const FEATURE_SYSTEM_PROMPT = `You are a senior QA engineer with expertise in Behaviour-Driven Development (BDD). Your task is to generate a valid Gherkin feature file from a user story.
+
+Guidelines:
+- Use proper Gherkin syntax: Feature, Background (if needed), Scenario / Scenario Outline, Given, When, Then, And, But
+- Include Positive, Negative, and Edge scenarios
+- Use Scenario Outline with Examples tables for data-driven cases where appropriate
+- Keep steps concise and re-usable
+- Return ONLY the raw Gherkin text, no markdown fences, no extra commentary.`
+
+export function buildFeaturePrompt(request: GenerateRequest): string {
+  const { storyTitle, acceptanceCriteria, description, additionalInfo } = request
+
+  let prompt = `Generate a Gherkin feature file for the following user story:
+
+Story Title: ${storyTitle}
+
+Acceptance Criteria:
+${acceptanceCriteria}
+`
+
+  if (description) prompt += `\nDescription:\n${description}\n`
+  if (additionalInfo) prompt += `\nAdditional Information:\n${additionalInfo}\n`
+
+  prompt += `\nReturn only the Gherkin feature file text.`
+  return prompt
+}

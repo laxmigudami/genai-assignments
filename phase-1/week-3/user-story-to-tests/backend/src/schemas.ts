@@ -23,7 +23,15 @@ export const GenerateResponseSchema = z.object({
   completionTokens: z.number()
 })
 
+export const FeatureFileResponseSchema = z.object({
+  content: z.string(),
+  model: z.string().optional(),
+  promptTokens: z.number(),
+  completionTokens: z.number()
+})
+
 // Type exports
 export type GenerateRequest = z.infer<typeof GenerateRequestSchema>
 export type TestCase = z.infer<typeof TestCaseSchema>
 export type GenerateResponse = z.infer<typeof GenerateResponseSchema>
+export type FeatureFileResponse = z.infer<typeof FeatureFileResponseSchema>

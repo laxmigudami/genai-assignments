@@ -3,6 +3,8 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import path from 'path'
 import { generateRouter } from './routes/generate'
+import { generateFeatureRouter } from './routes/generateFeature'
+import { jiraRouter } from './routes/jira'
 
 // Load environment variables from root directory
 const envPath = path.join(__dirname, '../../.env')
@@ -13,9 +15,11 @@ dotenv.config({ path: envPath })
 console.log('Environment variables loaded:')
 console.log(`PORT: ${process.env.PORT}`)
 console.log(`CORS_ORIGIN: ${process.env.CORS_ORIGIN}`)
-console.log(`groq_API_BASE: ${process.env.groq_API_BASE}`)
+console.log(`LLM_PROVIDER: ${process.env.LLM_PROVIDER || 'groq (default)'}`)
 console.log(`groq_API_KEY: ${process.env.groq_API_KEY ? 'SET' : 'NOT SET'}`)
 console.log(`groq_MODEL: ${process.env.groq_MODEL}`)
+console.log(`OPENAI_API_KEY: ${process.env.OPENAI_API_KEY ? 'SET' : 'NOT SET'}`)
+console.log(`OPENAI_MODEL: ${process.env.OPENAI_MODEL}`)
 
 const app = express()
 const PORT = process.env.PORT || 8080
@@ -35,6 +39,8 @@ app.get('/api/health', (req, res) => {
 
 // API routes
 app.use('/api/generate-tests', generateRouter)
+app.use('/api/generate-feature', generateFeatureRouter)
+app.use('/api/jira', jiraRouter)
 
 // Error handling middleware
 app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {

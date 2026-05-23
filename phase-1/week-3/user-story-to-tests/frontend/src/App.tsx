@@ -1,6 +1,50 @@
 import { useState } from 'react'
-import { generateTests } from './api'
-import { GenerateRequest, GenerateResponse, TestCase } from './types'
+import { generateTests, generateFeatureFile } from './api'
+import { GenerateRequest, GenerateResponse, FeatureFileResponse, TestCase } from './types'
+import JiraConnect from './components/JiraConnect'
+
+function FeatureFilePanel({ featureResult }: { featureResult: FeatureFileResponse }) {
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(featureResult.content)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleDownload = () => {
+    const blob = new Blob([featureResult.content], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'generated.feature'
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  return (
+    <div style={{ background: 'white', borderRadius: 8, padding: 30, boxShadow: '0 2px 10px rgba(0,0,0,0.1)', marginBottom: 30 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 15, borderBottom: '2px solid #e1e8ed' }}>
+        <div>
+          <h2 style={{ fontSize: '1.8rem', color: '#2c3e50', marginBottom: 6 }}>Generated Feature File</h2>
+          <div style={{ color: '#666', fontSize: 14 }}>
+            {featureResult.model && `Model: ${featureResult.model}`}
+            {featureResult.promptTokens > 0 && ` • Tokens: ${featureResult.promptTokens + featureResult.completionTokens}`}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className={`copy-btn${copied ? ' copied' : ''}`} onClick={handleCopy}>
+            {copied ? '✓ Copied!' : 'Copy'}
+          </button>
+          <button className="copy-btn" style={{ background: '#3498db' }} onClick={handleDownload}>
+            Download .feature
+          </button>
+        </div>
+      </div>
+      <pre className="feature-file-output">{featureResult.content}</pre>
+    </div>
+  )
+}
 
 function App() {
   const [formData, setFormData] = useState<GenerateRequest>({
@@ -10,6 +54,8 @@ function App() {
     additionalInfo: ''
   })
   const [results, setResults] = useState<GenerateResponse | null>(null)
+  const [featureResult, setFeatureResult] = useState<FeatureFileResponse | null>(null)
+  const [generateMode, setGenerateMode] = useState<'tests' | 'feature'>('tests')
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   const [expandedTestCases, setExpandedTestCases] = useState<Set<string>>(new Set())
@@ -39,11 +85,71 @@ function App() {
     setIsLoading(true)
     setError(null)
     
+    if (generateMode === 'feature') {
+      try {
+        const response = await generateFeatureFile(formData)
+        setFeatureResult(response)
+        setResults(null)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to generate feature file')
+      } finally {
+        setIsLoading(false)
+      }
+      return
+    }
+    
     try {
       const response = await generateTests(formData)
       setResults(response)
+      setFeatureResult(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate tests')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  /**
+   * Called by JiraConnect with all selected Jira stories already formatted as GenerateRequest[].
+   * Runs each story through the existing generation pipeline and merges test cases.
+   */
+  const handleGenerateFromJira = async (stories: GenerateRequest[]) => {
+    if (!stories.length) return
+    setIsLoading(true)
+    setError(null)
+    setResults(null)
+    setFeatureResult(null)
+    try {
+      if (generateMode === 'feature') {
+        // Merge all stories into a single feature file
+        const parts: string[] = []
+        let lastMeta = { model: '', promptTokens: 0, completionTokens: 0 }
+        for (const story of stories) {
+          const response = await generateFeatureFile(story)
+          parts.push(response.content)
+          lastMeta = {
+            model: response.model ?? '',
+            promptTokens: lastMeta.promptTokens + response.promptTokens,
+            completionTokens: lastMeta.completionTokens + response.completionTokens,
+          }
+        }
+        setFeatureResult({ content: parts.join('\n\n'), ...lastMeta })
+      } else {
+        const allCases: TestCase[] = []
+        let lastMeta = { model: '', promptTokens: 0, completionTokens: 0 }
+        for (const story of stories) {
+          const response = await generateTests(story)
+          allCases.push(...response.cases)
+          lastMeta = {
+            model: response.model ?? '',
+            promptTokens: lastMeta.promptTokens + response.promptTokens,
+            completionTokens: lastMeta.completionTokens + response.completionTokens,
+          }
+        }
+        setResults({ cases: allCases, ...lastMeta })
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate')
     } finally {
       setIsLoading(false)
     }
@@ -333,6 +439,63 @@ function App() {
           text-transform: uppercase;
           letter-spacing: 0.5px;
         }
+
+        .mode-tabs {
+          display: flex;
+          gap: 0;
+          margin-bottom: 24px;
+          border-radius: 8px;
+          overflow: hidden;
+          border: 2px solid #3498db;
+          width: fit-content;
+        }
+
+        .mode-tab {
+          padding: 10px 22px;
+          font-size: 14px;
+          font-weight: 600;
+          cursor: pointer;
+          border: none;
+          background: white;
+          color: #3498db;
+          transition: background 0.15s, color 0.15s;
+        }
+
+        .mode-tab.active {
+          background: #3498db;
+          color: white;
+        }
+
+        .mode-tab:hover:not(.active) {
+          background: #eaf4fc;
+        }
+
+        .feature-file-output {
+          background: #1e1e1e;
+          color: #d4d4d4;
+          font-family: 'Consolas', 'Fira Code', 'Courier New', monospace;
+          font-size: 13px;
+          line-height: 1.7;
+          padding: 24px;
+          border-radius: 6px;
+          white-space: pre;
+          overflow-x: auto;
+        }
+
+        .copy-btn {
+          background: #27ae60;
+          color: white;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+
+        .copy-btn:hover { background: #219a52; }
+        .copy-btn.copied { background: #2ecc71; }
       `}</style>
       
       <div className="container">
@@ -340,7 +503,44 @@ function App() {
           <h1 className="title">User Story to Tests</h1>
           <p className="subtitle">Generate comprehensive test cases from your user stories</p>
         </div>
-        
+
+        {/* ── Mode Tabs ────────────────────────────────────────────────────── */}
+        <div style={{ marginBottom: 16 }}>
+          <div className="mode-tabs">
+            <button
+              type="button"
+              className={`mode-tab${generateMode === 'tests' ? ' active' : ''}`}
+              onClick={() => setGenerateMode('tests')}
+            >
+              Test Cases
+            </button>
+            <button
+              type="button"
+              className={`mode-tab${generateMode === 'feature' ? ' active' : ''}`}
+              onClick={() => setGenerateMode('feature')}
+            >
+              Feature File
+            </button>
+          </div>
+          <p style={{ color: '#888', fontSize: '0.82rem', marginTop: 6 }}>
+            {generateMode === 'tests'
+              ? 'Generate structured test cases (table view)'
+              : 'Generate a Gherkin .feature file (BDD format)'}
+          </p>
+        </div>
+
+        {/* ── Jira Integration ─────────────────────────────────────────────── */}
+        <div style={{ marginBottom: 24 }}>
+          <JiraConnect onGenerateTests={handleGenerateFromJira} isGenerating={isLoading} />
+        </div>
+
+        {/* ── Divider ──────────────────────────────────────────────────────── */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+          <hr style={{ flex: 1, borderColor: '#e1e8ed' }} />
+          <span style={{ color: '#999', fontSize: '0.85rem', whiteSpace: 'nowrap' }}>or enter manually</span>
+          <hr style={{ flex: 1, borderColor: '#e1e8ed' }} />
+        </div>
+
         <form onSubmit={handleSubmit} className="form-container">
           <div className="form-group">
             <label htmlFor="storyTitle" className="form-label">
@@ -402,7 +602,11 @@ function App() {
             className="submit-btn"
             disabled={isLoading}
           >
-            {isLoading ? 'Generating...' : 'Generate'}
+            {isLoading
+              ? 'Generating...'
+              : generateMode === 'feature'
+              ? 'Generate Feature File'
+              : 'Generate Test Cases'}
           </button>
         </form>
 
@@ -414,8 +618,12 @@ function App() {
 
         {isLoading && (
           <div className="loading">
-            Generating test cases...
+            {generateMode === 'feature' ? 'Generating feature file...' : 'Generating test cases...'}
           </div>
+        )}
+
+        {featureResult && (
+          <FeatureFilePanel featureResult={featureResult} />
         )}
 
         {results && (

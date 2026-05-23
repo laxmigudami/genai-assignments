@@ -1,0 +1,108 @@
+*Import Extension in VS Code*
+
+1) Open VS Code
+2) Unzip and extract the ai-extension
+2) File -->Open Folder --->Folder path of the extension
+
+*Load the extension to the browser*
+
+Chrome:
+1)Extract the Zip file
+2)Copy the path where manifest.json is present(Local file)
+---Pom.xml/package.json -Dependencies
+Depdencies required for extension will be present in manifest.json
+3)Open Chrome browser and type chrome://extensions or edge://extensions
+4)Enable developer mode in the browser
+5)Click on Load unpacked
+6)Give the path copied in step -2
+7)Extension Appears
+8)Pin the extension
+
+Generate script:
+
+1)Open the extension and Set the Groq Key in settings
+2) Select teh service provider and the model
+3)Click on inspect and select the DOM
+4)CLick stop 
+5)Click on Generate button
+
+
+What ever changes are done in manifest --Reload the extension
+
+Debugging:
+
+1) Right Click and inspect on the *Extension*
+2) Open the network Tab
+3) Now click on Generate button
+4) Verify the network calls
+
+
+*change the logo*
+1)In the vscode , right click on assets --images folder --Reveal in file explorer and open the images folder 
+add a image for logo (PNG is suggested)
+2)Change the logo name in manifest.json
+3)change the logo path with file name in src/config/appconfig.js
+
+*Note*
+Go to chrome://extensions/ --remove and reload
+On make changes in manifest.json remove the extension and reload the same
+
+
+*Add the new model*
+1)Copy the model from groq playground
+2) Popup.js
+under groq add the model
+const modelsByProvider
+{ value: 'openai/gpt-oss-120b', label: 'GPT-OSS-120' }
+3)Close the extension and reopen it
+4)Go to settings and you can find the newly added model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -28,28 +28,35 @@ jiraRouter.post('/connect', async (req: Request, res: Response) => {
     return res.status(400).json({ error: 'baseUrl, email, and apiToken are required.' })
   }
 
-  // Basic Auth: base64(email:token) — required by Jira Cloud REST API v3
   const auth = Buffer.from(`${email}:${apiToken}`).toString('base64')
-  const cleanBase = baseUrl.replace(/\/$/, '')
+
+  // ✅ Strip everything after the domain — only keep https://xxx.atlassian.net
+  const cleanBase = baseUrl
+    .replace(/\/$/, '')
+    .replace(/\/rest\/api\/.*$/, '')  // remove any accidental path the frontend sent
 
   try {
-    const response = await axios.get(`${cleanBase}/rest/api/3/search`, {
-      headers: {
-        Authorization: `Basic ${auth}`,
-        Accept: 'application/json',
-      },
-      params: {
+    // ✅ Use POST to /rest/api/3/search/jql (new Atlassian endpoint)
+    const response = await axios.post(
+      `${cleanBase}/rest/api/3/search/jql`,
+      {
         jql: 'issuetype = Story AND statusCategory != Done ORDER BY created DESC',
-        fields: 'summary,description,status,assignee,priority',
+        fields: ['summary', 'description', 'status', 'assignee', 'priority'],
         maxResults: 50,
       },
-    })
+      {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+      }
+    )
 
     const stories = (response.data.issues as any[]).map((issue) => ({
       id: issue.id,
       key: issue.key,
       summary: issue.fields.summary as string,
-      // description comes as ADF — convert to plain text
       description: extractPlainText(issue.fields.description),
       status: issue.fields.status?.name as string,
       priority: issue.fields.priority?.name as string,
